@@ -12,3 +12,5 @@ serv.listen(5)
 while True:
     client, c_addr = serv.accept()
     print(f"[Alert] Got Connection From {c_addr}")
+    client.send('Successfully Connected To C2'.encode())
+    client.close()
