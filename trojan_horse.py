@@ -9,5 +9,3 @@ client.connect((serv_addr, port))
 
 data = client.recv(1024).decode()
 print(data)
-
-client.close()
