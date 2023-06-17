@@ -20,5 +20,7 @@ while True:
     print(f"[Alert] Got Connection From {c_addr}")  # To Keep Track of All The Connected Clients
     client.send('Successfully Connected To C2'.encode())  # Send an acknowledgement message to the client
     client_data = client.recv(2048).decode()  # Receive and decode the client data
+    print("="*30)
     print(client_data)
+    print("="*30)
     client.close()
