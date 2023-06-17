@@ -3,7 +3,7 @@ import socket
 serv = socket.socket()
 
 ip_addr = '127.0.0.1'
-port = 21
+port = 1337
 
 try:
     serv.bind((ip_addr, port))
