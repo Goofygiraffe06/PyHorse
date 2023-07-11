@@ -26,13 +26,17 @@ while True:
 
     # Receive and decode the client data
     client_data = client.recv(2048).decode()
-    print("="*30)
+    print("=" * 30)
     print(client_data)
-    print("="*30)
+    print("=" * 30)
 
     # Receive and decode more data from the client
-    data = client.recv(2048).decode()
-    print(data)
+    while True:
+        data = client.recv(2048).decode()
+        if not data:
+            break
+        print(data)
 
     # Close the client connection
     client.close()
+
